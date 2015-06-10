@@ -25,9 +25,9 @@ Wrap all the particles in the simulation cell to prevent them from going out.
 " ->
 immutable WrapParticles <: Control end
 
-function Base.call(::WrapParticles, univ::Universe)
-    for i=1:size(univ.frame)
-        @inbounds minimal_image!(univ.frame.positions[i], univ.cell)
+function Base.call(::WrapParticles, universe::Universe)
+    for i=1:size(universe)
+        @inbounds minimal_image!(universe.positions[i], universe.cell)
     end
 end
 
@@ -53,11 +53,11 @@ immutable VelocityRescaleThermostat <: Thermostat
     tol::Float64
 end
 
-function Base.call(th::VelocityRescaleThermostat, univ::Universe)
-    T = univ.data[:temperature]
+function Base.call(th::VelocityRescaleThermostat, universe::Universe)
+    T = universe.data[:temperature]
     if abs(T - th.T) > th.tol # Let's rescale the velocities
-        for i=1:size(univ), dim=1:3
-            @inbounds univ.frame.velocities[dim, i] *= sqrt(th.T/T)
+        for i=1:size(universe), dim=1:3
+            @inbounds universe.velocities[dim, i] *= sqrt(th.T/T)
         end
     end
 end
@@ -80,11 +80,11 @@ end
 
 BerendsenThermostat(T) = BerendsenThermostat(T, 100)
 
-function Base.call(th::BerendsenThermostat, univ::Universe)
-    T = univ.data[:temperature]
+function Base.call(th::BerendsenThermostat, universe::Universe)
+    T = universe.data[:temperature]
     λ = sqrt(1 + 1/th.tau*(th.T/T - 1))
-    for i=1:size(univ), dim=1:3
-        @inbounds univ.frame.velocities[dim, i] *= λ
+    for i=1:size(universe), dim=1:3
+        @inbounds universe.velocities[dim, i] *= λ
     end
 end
 

@@ -1,18 +1,18 @@
 function testing_universe_from_cell(cell)
     top = dummy_topology(4)
-    frame = Frame(4)
-    frame.positions[1] = [2, 2, 4]
-    frame.positions[2] = [2, 2, 2]
-    frame.positions[3] = [-45, 2, 300.56]
-    frame.positions[4] = [29, 22, 45]
+    positions = Array3D(Float64, 4)
+    positions[1] = [2, 2, 4]
+    positions[2] = [2, 2, 2]
+    positions[3] = [-45, 2, 300.56]
+    positions[4] = [29, 22, 45]
     universe = Universe(cell, top)
-    universe.frame = frame
+    set_positions!(universe, positions)
     return universe
 end
 
 # Cell for later usage
 const orthorombic = UnitCell(10.0)
-const infitite = UnitCell(InfiniteCell)
+const infinite = UnitCell(InfiniteCell)
 const triclinic1 = UnitCell(10.0, 10.0, 10.0, 2*pi/5, pi/2, 2*pi/3)
 const triclinic2 = UnitCell(10.0, TriclinicCell)
 
@@ -23,7 +23,7 @@ facts("UnitCell type") do
         @fact UnitCell(13.) => UnitCell(13., 13., 13., pi/2, pi/2, pi/2)
 
         @fact isa(orthorombic, UnitCell{OrthorombicCell}) => true
-        @fact isa(infitite, UnitCell{InfiniteCell}) => true
+        @fact isa(infinite, UnitCell{InfiniteCell}) => true
         @fact isa(triclinic1, UnitCell{TriclinicCell}) => true
 
         @fact isa(UnitCell(10.0, OrthorombicCell), UnitCell{OrthorombicCell}) => true
@@ -43,7 +43,7 @@ facts("UnitCell type") do
     end
 
     context("Distances symetry") do
-        for cell in [orthorombic, infitite, triclinic1, triclinic2]
+        for cell in [orthorombic, infinite, triclinic1, triclinic2]
             universe = testing_universe_from_cell(cell)
             for i=1:4, j=1:4
                 @fact distance(universe, i, j) => distance(universe, j, i)
@@ -55,34 +55,34 @@ end
 facts("Minimal images") do
     context("Orthorombic cell") do
         universe = testing_universe_from_cell(orthorombic)
-        @fact minimal_image(universe.frame.positions[1], orthorombic) => universe.frame.positions[1]
-        @fact minimal_image(universe.frame.positions[3], orthorombic) => roughly([-5.0, 2.0, 0.56])
-        @fact minimal_image(universe.frame.positions[4], orthorombic) => roughly([-1.0, 2.0, 5.0])
+        @fact minimal_image(universe.positions[1], orthorombic) => universe.positions[1]
+        @fact minimal_image(universe.positions[3], orthorombic) => roughly([-5.0, 2.0, 0.56])
+        @fact minimal_image(universe.positions[4], orthorombic) => roughly([-1.0, 2.0, 5.0])
 
         # Mutating version
-        minimal_image!(universe.frame.positions[4], orthorombic)
-        @fact [universe.frame.positions[4]...] => roughly([-1.0, 2.0, 5.0])
+        minimal_image!(universe.positions[4], orthorombic)
+        @fact [universe.positions[4]...] => roughly([-1.0, 2.0, 5.0])
     end
 
     context("Triclinic cell") do
         universe = testing_universe_from_cell(orthorombic)
 
-        @fact minimal_image(universe.frame.positions[1], triclinic2) => [universe.frame.positions[1]...]
-        @pending minimal_image(universe.frame.positions[1], triclinic1) => ["compute the real values"]
+        @fact minimal_image(universe.positions[1], triclinic2) => [universe.positions[1]...]
+        @pending minimal_image(universe.positions[1], triclinic1) => ["compute the real values"]
     end
 
     context("Infinite cell") do
-        universe = testing_universe_from_cell(infitite)
-        @fact minimal_image(universe.frame.positions[1], infitite) => [universe.frame.positions[1]...]
-        @fact minimal_image(universe.frame.positions[3], infitite) => [universe.frame.positions[3]...]
-        @fact minimal_image(universe.frame.positions[4], infitite) => [universe.frame.positions[4]...]
+        universe = testing_universe_from_cell(infinite)
+        @fact minimal_image(universe.positions[1], infinite) => [universe.positions[1]...]
+        @fact minimal_image(universe.positions[3], infinite) => [universe.positions[3]...]
+        @fact minimal_image(universe.positions[4], infinite) => [universe.positions[4]...]
     end
 end
 
 facts("Volume computation") do
     @fact volume(orthorombic) => 10.^3
     @fact volume(triclinic2) => volume(orthorombic)
-    @fact volume(infitite) => 0.
+    @fact volume(infinite) => 0.
     V = 10.0^3 * sqrt(1 - cos(2*pi/5)^2 - cos(pi/2)^2 - cos(2*pi/3)^2
                         + 2*cos(2*pi/5)^2*cos(pi/2)^2*cos(2*pi/3)^2  )
     @fact volume(triclinic1) => V

@@ -19,9 +19,9 @@ call the force function for these particles.
 "->
 immutable NaiveForces <: ForcesComputer end
 
-function Base.call(::NaiveForces, univ::Universe, forces::Array3D)
-    interactions = univ.interactions
-    const natoms = size(univ)
+function Base.call(::NaiveForces, universe::Universe, forces::Array3D)
+    interactions = universe.interactions
+    const natoms = size(universe)
 
     # Temporary values
     r = Array(Float64, 3)
@@ -36,11 +36,11 @@ function Base.call(::NaiveForces, univ::Universe, forces::Array3D)
     fill!(forces, 0)
 
     for i=1:(natoms-1)
-        itype = univ.topology.atoms[i]
+        itype = universe.topology.atoms[i]
         for j=(i+1):natoms
 
-            jtype = univ.topology.atoms[j]
-            r = distance3d(univ, i, j)
+            jtype = universe.topology.atoms[j]
+            r = distance3d(universe, i, j)
             dist = norm(r)
             unit!(r)
 

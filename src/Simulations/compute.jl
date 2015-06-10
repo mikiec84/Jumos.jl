@@ -27,17 +27,17 @@ end
 # ============================================================================ #
 
 @doc "
-Compute the temperature of a simulation frame using the relation
+Compute the temperature of a simulation using the relation
 	T = 1/kB * 2K/(3N) with K the kinetic energy
 " ->
 immutable TemperatureCompute <: Compute end
 
-function Base.call(::TemperatureCompute, univ::Universe)
+function Base.call(::TemperatureCompute, universe::Universe)
 	T = 0.0
-    K = kinetic_energy(univ)
-    natoms = size(univ.frame)
+    K = kinetic_energy(universe)
+    natoms = size(universe)
 	T = 1/kB * 2*K/(3*natoms)
-	univ.data[:temperature] = T
+	universe.data[:temperature] = T
 	return T
 end
 
@@ -55,9 +55,9 @@ Compute the volume of the current simulation cell
 " ->
 immutable VolumeCompute <: Compute end
 
-function Base.call(::VolumeCompute, univ::Universe)
-    V = volume(univ.cell)
-	univ.data[:volume] = V
+function Base.call(::VolumeCompute, universe::Universe)
+    V = volume(universe.cell)
+	universe.data[:volume] = V
     return V
 end
 
@@ -70,32 +70,32 @@ Compute the energy of a simulation.
 " ->
 immutable EnergyCompute <: Compute end
 
-function Base.call(::EnergyCompute, univ::Universe)
-    K = kinetic_energy(univ)
-    P = potential_energy(univ)
-	univ.data[:E_kinetic] = K
-	univ.data[:E_potential] = P
-	univ.data[:E_total] = P + K
+function Base.call(::EnergyCompute, universe::Universe)
+    K = kinetic_energy(universe)
+    P = potential_energy(universe)
+	universe.data[:E_kinetic] = K
+	universe.data[:E_potential] = P
+	universe.data[:E_total] = P + K
 	return K, P, P + K
 end
 
-function kinetic_energy(univ::Universe)
+function kinetic_energy(universe::Universe)
     K = 0.0
-	const natoms = size(univ)
+	const natoms = size(universe)
 	@inbounds for i=1:natoms
-		K += 0.5 * univ.masses[i] * norm2(univ.frame.velocities[i])
+		K += 0.5 * universe.masses[i] * norm2(universe.velocities[i])
 	end
     return K
 end
 
-function potential_energy(univ::Universe)
+function potential_energy(universe::Universe)
     E = 0.0
-	const natoms = size(univ)
+	const natoms = size(universe)
 	@inbounds for i=1:natoms, j=(i+1):natoms
-        atom_i = univ.topology.atoms[i]
-        atom_j = univ.topology.atoms[j]
-		for potential in pairs(univ.interactions, atom_i, atom_j)
-			E += potential(distance(univ, i, j))
+        atom_i = universe.topology.atoms[i]
+        atom_j = universe.topology.atoms[j]
+		for potential in pairs(universe.interactions, atom_i, atom_j)
+			E += potential(distance(universe, i, j))
 		end
 		# TODO: bonds, angles, ...
 	end

@@ -44,13 +44,13 @@ end
 Write the trajectory to a file. The trajectory format is guessed from the extension.
 " ->
 type TrajectoryOutput <: Output
-    writer::Writer
+    #writer::Writer
     frequency::OutputFrequency
 end
 
 function TrajectoryOutput(filename::String, frequency=1)
-    writer = Writer(filename)
-    return TrajectoryOutput(writer, OutputFrequency(frequency))
+    #writer = Writer(filename)
+    #return TrajectoryOutput(writer, OutputFrequency(frequency))
 end
 
 function Base.write(out::TrajectoryOutput, context::Dict)

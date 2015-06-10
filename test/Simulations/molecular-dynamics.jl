@@ -17,18 +17,6 @@ facts("Simulation UI") do
             @fact T(universe) => less_than(350)
         end
     end
-
-    context("Trajectory output") do
-        universe = testing_universe_from_size(10)
-        sim = Simulation(:MD)
-        tmpname = tempname() * ".xyz"
-        out_trajectory = TrajectoryOutput(tmpname, 1)
-        push!(sim, out_trajectory)
-
-        propagate!(sim, universe, 500)
-
-        rm(tmpname)
-    end
 end
 
 facts("Simulation physical consistency") do

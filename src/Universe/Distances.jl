@@ -79,8 +79,8 @@ function distance(universe::Universe, i::Integer, j::Integer, work=[0., 0., 0.])
     return norm(
             minimal_image!(
                     substract!(
-                        universe.frame.positions[i],
-                        universe.frame.positions[j],
+                        universe.positions[i],
+                        universe.positions[j],
                         work),
                     universe.cell)
                 )
@@ -95,8 +95,8 @@ is `positions[j] - positions[i]`. `work` can be a pre-allocated vector of
 Float64 with 3 components.
 " ->
 function distance3d(universe::Universe, i::Integer, j::Integer, work=[0., 0., 0.])
-    return minimal_image!(substract!(universe.frame.positions[j],
-                                     universe.frame.positions[i],
+    return minimal_image!(substract!(universe.positions[j],
+                                     universe.positions[i],
                                      work),
                           universe.cell)
 end
@@ -109,7 +109,7 @@ pre-allocated array for the distances storage. After the function, `result[i, j]
 = distance(universe, i, j)`
 " ->
 function distance_array(universe::Universe, result = nothing)
-    cols = length(universe.frame.positions)
+    cols = length(universe.positions)
     # Checking the pre-allocated array
     if result == nothing
         result = Array(Float64, cols, cols)
@@ -123,7 +123,7 @@ end
 import Distances
 
 function compute_distance_array!(result, universe)
-    tmp = copy(universe.frame.positions.data)
+    tmp = copy(universe.positions.data)
     minimal_image!(tmp, universe.cell)
 
     Distances.pairwise!(result, Distances.Euclidean(), tmp)

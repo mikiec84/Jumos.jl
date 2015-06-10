@@ -28,24 +28,24 @@ function VelocityVerlet(timestep::Real)
     return VelocityVerlet(timestep, accelerations)
 end
 
-function setup(integrator::VelocityVerlet, ::Simulation, univ::Universe)
-    natoms = size(univ)
+function setup(integrator::VelocityVerlet, ::Simulation, universe::Universe)
+    natoms = size(universe)
     if length(integrator.accelerations) != natoms
         resize!(integrator.accelerations, natoms)
         fill!(integrator.accelerations, 0)
     end
 end
 
-function Base.call(integrator::VelocityVerlet, md::MolecularDynamics, univ::Universe)
+function Base.call(integrator::VelocityVerlet, md::MolecularDynamics, universe::Universe)
     const dt = integrator.timestep
 
     # Getting pointers to facilitate further reading
-    positions = univ.frame.positions
-    velocities = univ.frame.velocities
+    positions = universe.positions
+    velocities = universe.velocities
     accelerations = integrator.accelerations
-    masses = univ.masses
+    masses = universe.masses
 
-    const natoms = size(univ)
+    const natoms = size(universe)
 
     # Update velocities at t + ∆t/2
     @inbounds for i=1:natoms, dim=1:3
@@ -57,7 +57,7 @@ function Base.call(integrator::VelocityVerlet, md::MolecularDynamics, univ::Univ
         positions[dim, i] += velocities[dim, i]*dt
     end
 
-    getforces!(md, univ)
+    getforces!(md, universe)
     # Update accelerations at t + ∆t
     @inbounds for i=1:natoms, dim=1:3
         accelerations[dim, i] = md.forces[dim, i] / masses[i]
@@ -85,8 +85,8 @@ function Verlet(timestep::Real)
     return Verlet(timestep, Array3D(Float64, 0), Array3D(Float64, 0), false)
 end
 
-function setup(integrator::Verlet, sim::Simulation, univ::Universe)
-    const natoms = size(univ)
+function setup(integrator::Verlet, sim::Simulation, universe::Universe)
+    const natoms = size(universe)
 
     integrator.wrap_velocities = ispresent(sim, WrapParticles())
 
@@ -97,23 +97,23 @@ function setup(integrator::Verlet, sim::Simulation, univ::Universe)
         dt = integrator.timestep
         # Approximate the positions at t - ∆t
         for i=1:natoms
-            integrator.prevpos[i] = univ.frame.positions[i] - univ.frame.velocities[i].*dt
+            integrator.prevpos[i] = universe.positions[i] - universe.velocities[i].*dt
         end
     end
 end
 
-function Base.call(integrator::Verlet, md::MolecularDynamics, univ::Universe)
+function Base.call(integrator::Verlet, md::MolecularDynamics, universe::Universe)
     const dt = integrator.timestep
 
     # Getting pointers to facilitate further reading
-    positions = univ.frame.positions
-    velocities = univ.frame.velocities
+    positions = universe.positions
+    velocities = universe.velocities
     prevpos = integrator.prevpos
     tmp = integrator.tmp
-    masses = univ.masses
+    masses = universe.masses
 
-    natoms = size(univ)
-    getforces!(md, univ)
+    natoms = size(universe)
+    getforces!(md, universe)
 
     # Save positions at t
     @inbounds for i=1:natoms, dim=1:3
@@ -133,7 +133,7 @@ function Base.call(integrator::Verlet, md::MolecularDynamics, univ::Universe)
         delta_pos = zeros(Float64, 3)
         @inbounds for i=1:natoms
             delta_pos = positions[i] - prevpos[i]
-            minimal_image!(delta_pos, univ.cell)
+            minimal_image!(delta_pos, universe.cell)
             for dim=1:3
                 velocities[dim, i] = delta_pos[dim] / (2.0 * dt)
             end

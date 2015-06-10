@@ -8,42 +8,45 @@
 #             Universe type, holding all the simulated system data
 # ============================================================================ #
 export Universe
-export setframe!, setcell!, add_interaction!, get_masses!, check_masses
+export set_cell!, add_interaction!, get_masses!, check_masses
+export set_positions!, set_velocities!
 
 include("Topology.jl")
 include("UnitCell.jl")
-include("Frame.jl")
 include("Interactions.jl")
 
 type Universe
     cell::UnitCell
     topology::Topology
     interactions::Interactions
-    frame::Frame
+    positions::Array3D{Float64}
+    velocities::Array3D{Float64}
     masses::Vector{Float64}
     data::Dict{Symbol, Any}
 end
 
 function Universe(cell::UnitCell, topology::Topology)
-    univ = Universe(cell,
+    universe = Universe(cell,
                     topology,
                     Interactions(),
-                    Frame(size(topology)),
+                    Array3D(Float64, 0),
+                    Array3D(Float64, 0),
                     Float64[],
                     Dict{Symbol, Any}()
             )
-    univ.data[:universe] = univ
-    return univ
+    universe.data[:universeerse] = universe
+    universe.data[:step] = 0
+    return universe
 end
 
 function Base.size(u::Universe)
-    assert(size(u.frame) == size(u.topology))
-    return size(u.frame)
+    assert(size(u.positions, 2) == size(u.topology))
+    return size(u.positions, 2)
 end
 
 @doc "
-`get_masses!(universe)`: get masses from the topology, and store them in the
-universe internal data. Returns the masses array.
+`get_masses!(universeerse)`: get masses from the topology, and store them in the
+universeerse internal data. Returns the masses array.
 " ->
 function get_masses!(u::Universe)
     u.masses = atomic_masses(u.topology)
@@ -51,14 +54,14 @@ function get_masses!(u::Universe)
 end
 
 @doc "
-`check_masses(universe)`: Check that all masses are defined and are not equals to 0.
+`check_masses(universeerse)`: Check that all masses are defined and are not equals to 0.
 " ->
-function check_masses(univ::Universe)
-    if countnz(univ.masses) != size(univ.topology)
+function check_masses(universe::Universe)
+    if countnz(universe.masses) != size(universe.topology)
         bad_masses = Set()
-        for (i, val) in enumerate(univ.masses)
+        for (i, val) in enumerate(universe.masses)
             if val == 0.0
-                union!(bad_masses, [univ.topology[i].name])
+                union!(bad_masses, [universe.topology[i].name])
             end
         end
         missing = join(bad_masses, " ")
@@ -85,42 +88,42 @@ function remove_liaison!(u::Universe, atom_i::Atom, atom_j::Atom)
 end
 
 @doc "
-`setframe!(universe, frame)`: set the `universe` frame to `frame`.
+`set_positions!(universeerse)`: get masses from the topology, and store them in the
+universeerse internal data. Returns the masses array.
 " ->
-function setframe!(univ::Universe, frame::Frame)
-    univ.frame = frame
-    return nothing
+function set_positions!(universeerse::Universe, positions::Array3D{Float64})
+    universeerse.positions = positions
 end
 
 @doc "
-`setcell!(universe, cell)`
+`set_cell!(universeerse, cell)`
 
-Set the universe unit cell. `cell` can be an UnitCell instance or a list of cell
+Set the universeerse unit cell. `cell` can be an UnitCell instance or a list of cell
 lenghts and angles.
 
-`setcell!(universe, celltype, params)`
+`set_cell!(universeerse, celltype, params)`
 
-Set the universe unit cell to a cell with type `celltype` and cell parameters from
+Set the universeerse unit cell to a cell with type `celltype` and cell parameters from
 `params`
 " ->
-function setcell!(univ::Universe, cell::UnitCell)
+function set_cell!(universe::Universe, cell::UnitCell)
     sim.cell = cell
 end
 
-function setcell!(univ::Universe, params)
+function set_cell!(universe::Universe, params)
     return setcell!(sim, UnitCell(params...))
 end
 
-function setcell!{T<:Type{AbstractCellType}}(univ::Universe, celltype::T, params = tuple())
+function set_cell!{T<:Type{AbstractCellType}}(universe::Universe, celltype::T, params = tuple())
     return setcell!(sim, UnitCell(celltype, params...))
 end
 
 # Todo: Way to add a catchall interaction
-function add_interaction!(univ::Universe, pot::PotentialFunction, atoms...;
+function add_interaction!(universe::Universe, pot::PotentialFunction, atoms...;
                          computation=:auto, kwargs...)
-    atoms_id = get_atoms_id(univ.topology, atoms...)
+    atoms_id = get_atoms_id(universe.topology, atoms...)
     computation = get_computation(pot; computation=computation, kwargs...)
-    push!(univ.interactions, computation, atoms_id...)
+    push!(universe.interactions, computation, atoms_id...)
     return nothing
 end
 

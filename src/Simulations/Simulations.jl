@@ -52,7 +52,6 @@ end
 Propagate a Simulation for `nsteps` steps on the `universe`.
 " ->
 function propagate!(sim::Simulation, universe::Universe, nsteps::Integer)
-
     for output in sim.outputs
         setup(output, sim)
     end
@@ -62,8 +61,7 @@ function propagate!(sim::Simulation, universe::Universe, nsteps::Integer)
         sim.propagator(universe)
         compute(sim, universe)
         output(sim, universe)
-        universe.frame.step += 1
-        universe.data[:step] = universe.frame.step
+        universe.data[:step] += 1
     end
     return nothing
 end
