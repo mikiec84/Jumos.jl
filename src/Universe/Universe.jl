@@ -128,3 +128,4 @@ function add_interaction!(universe::Universe, pot::PotentialFunction, atoms...;
 end
 
 include("Distances.jl")
+include("chemharp.jl")

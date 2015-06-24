@@ -1,5 +1,3 @@
-# Testing potentials
-
 facts("Potentials functions") do
     context("Harmonic potential") do
         harmonic = Harmonic(30, 2.0, 4.5)
