@@ -8,12 +8,10 @@ sim = Simulation(:MD, 1.0)
 
 # Create a cubic cell with a width of 10A
 cell = UnitCell(unit_from(10.0, "A"))
-# Read a topology from a file
-topology = Topology("lennard-jones.xyz")
-# Create an universe from the cell and the topology
-
-universe = Universe(cell, topology)
-positions_from_file!(universe, "lennard-jones.xyz")
+# Read the initial configuration from a file
+universe = Universe("lennard-jones.xyz")
+# Set the unit cell, as no unit cell information exist in xyz files
+set_cell!(universe, cell)
 # Initialize random velocities at 300K
 create_velocities!(universe, 300)
 

@@ -2,7 +2,7 @@ units real
 atom_style full
 boundary p p p
 
-read_data He-LJ.lmp
+read_data initial.lmp
 
 pair_style lj/cut 8
 pair_coeff 1 1 0.3 2.0
